@@ -11,7 +11,8 @@ h2{
 
 h3{
     background-color: white;
-    color: red;
+    color: palevioletred;
+    padding: 10px;
 }
 
 input{

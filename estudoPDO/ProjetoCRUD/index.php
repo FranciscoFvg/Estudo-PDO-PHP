@@ -15,39 +15,71 @@
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
-    
+    <?php
+
+        if (isset($_GET['id_update'])) {
+            $id_update = addslashes($_GET['id_update']);
+            $res = $p->buscarDadosPessoa($id_update);
+        }
+
+    ?>
     <section id="esquerda">
         <form action="" method="POST">
 
             <h2>Cadastrar Pessoa</h2>
 
             <label for="nome">Nome: </label>
-            <input type="text" name="nome" id="nome">
+            <input type="text" name="nome" id="nome" value="<?php if (isset($res)) { echo $res['nome'];} ?>">
 
             <label for="telefone">Telefone: </label>
-            <input type="text" name="telefone" id="telefone">
+            <input type="text" name="telefone" id="telefone" value="<?php if (isset($res)) { echo $res['telefone'];} ?>">
 
             <label for="email">Email: </label>
-            <input type="email" name="email" id="email">
+            <input type="email" name="email" id="email" value="<?php if (isset($res)) { echo $res['email'];}?>">
 
-            <input type="submit" value="Cadastrar">
+            <input type="submit" value="<?php if (isset($res)) { echo "Atualizar";}else{echo "Cadastrar";} ?>">
         
         </form>
         <?php
             //verifica se o botao de cadastrar foi clicado e dados preenchidos
-            if (isset($_POST['nome'])) {
-                //addslashes() impede que códigos maliciosos sejam enviados ao site
-                $nome = addslashes($_POST['nome']);
-                $telefone = addslashes($_POST['telefone']);
-                $email = addslashes($_POST['email']);
+            if (isset($_POST['nome'])) {//Clicou no botão cadastrar ou atualizar
 
-                if (!empty($nome) && !empty($telefone) && !empty($email)) {
-                    if (!$p->cadastrarPessoa($nome,$telefone,$email)) {
-                        echo '<h3>Email já cadastrado!</h3>';
-                    }
+
+                if (isset($_GET['id_update']) && !empty('id_update')) {//EDITAR
                     
-                }else{
-                    echo "<h3>Preencha todos os campos especificados!</h3>";
+                    //addslashes() impede que códigos maliciosos sejam enviados ao site
+                    $nome = addslashes($_POST['nome']);
+                    $telefone = addslashes($_POST['telefone']);
+                    $new_email = addslashes($_POST['email']);
+                    $id_update = addslashes($_GET['id_update']);
+                    $old_email  = $res['email'];
+
+                    if (!empty($nome) && !empty($telefone) && !empty($new_email)) {
+                        if ($p->atualizarDados($id_update,$nome,$telefone,$old_email, $new_email)) {
+                            header("location: index.php");
+                        }else{
+                            echo '<h3>Email já cadastrado!</h3>';
+                        }
+                        
+                    }else{
+                        echo "<h3>Preencha todos os campos especificados!</h3>";
+                    }
+
+                }else{//CADASTRAR
+
+                    //addslashes() impede que códigos maliciosos sejam enviados ao site
+                    $nome = addslashes($_POST['nome']);
+                    $telefone = addslashes($_POST['telefone']);
+                    $email = addslashes($_POST['email']);
+
+                    if (!empty($nome) && !empty($telefone) && !empty($email)) {
+                        if (!$p->cadastrarPessoa($nome,$telefone,$email)) {
+                            echo '<h3>Email já cadastrado!</h3>';
+                        }
+                        
+                    }else{
+                        echo "<h3>Preencha todos os campos especificados!</h3>";
+                    }
                 }
             }
         ?>
@@ -74,18 +106,32 @@
 
                         }
                     }
-                    echo '<td>
-                        <a href="">Editar</a>
-                        <a href="">Deletar</a>
-                    </td>';
-                    echo "</tr>";
+            ?>
+            
+                <td>
+                    <a href="index.php?id_update=<?php echo $dados[$i]['id']; ?>">Editar</a>
+                    <a href="index.php?id=<?php echo $dados[$i]['id']; ?>">Deletar</a>
+                </td>
+            </tr>
+
+        </table>
+        <?php
                 }
             }else{//BANCO VAZIO
                 echo "Não existem pessoas cadastradas no banco";
             }
             ?>
-
-        </table>
     </section>
 </body>
 </html>
+
+<?php
+
+    if (isset($_GET['id'])) {
+        $id_pessoa = addslashes($_GET['id']);
+        $p->excluirPessoa($id_pessoa);
+        //header() usado para atualizar a página após a operação
+        header("location: index.php");
+    }
+
+?>
